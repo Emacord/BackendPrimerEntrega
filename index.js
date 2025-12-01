@@ -24,9 +24,7 @@ const pm = new ProductManager();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
-app.use(express.static(path.join(__dirname, "public")));
-
+app.use(express.static(path.join(__dirname, "src", "public")));
 
 app.engine("handlebars", exphbs.engine());
 app.set("view engine", "handlebars");
@@ -43,30 +41,36 @@ app.use("/", viewsRouter);
 io.on("connection", async (socket) => {
   console.log("Nuevo cliente conectado");
 
-
+  
   const products = await pm.getAll();
   socket.emit("productsUpdated", products);
 
-
+  
   socket.on("createProduct", async (data) => {
     try {
       await pm.add(data);
       const updated = await pm.getAll();
       io.emit("productsUpdated", updated);
     } catch (err) {
+      console.error("Error al crear producto por WS:", err.message);
       socket.emit("errorMessage", err.message);
     }
   });
 
-
+  
   socket.on("deleteProduct", async (id) => {
-    const ok = await pm.remove(id);
-    if (!ok) {
-      socket.emit("errorMessage", "Producto no encontrado");
-      return;
+    try {
+      const ok = await pm.remove(id);
+      if (!ok) {
+        socket.emit("errorMessage", "Producto no encontrado");
+        return;
+      }
+      const updated = await pm.getAll();
+      io.emit("productsUpdated", updated);
+    } catch (err) {
+      console.error("Error al eliminar producto por WS:", err.message);
+      socket.emit("errorMessage", "Error al eliminar el producto");
     }
-    const updated = await pm.getAll();
-    io.emit("productsUpdated", updated);
   });
 });
 
@@ -83,4 +87,5 @@ const PORT = 8080;
     process.exit(1);
   }
 })();
+
 
