@@ -1,0 +1,121 @@
+
+<h1>Productos</h1>
+
+<p>
+  <a href="/realtimeproducts">Ver productos en tiempo real (WebSocket)</a>
+</p>
+
+<hr />
+
+
+<form method="GET" action="/products">
+  <label>
+    Categoría (texto) o "available":
+    <input
+      type="text"
+      name="query"
+      value="{{query}}"
+      placeholder="Ej: Remeras o available"
+    />
+  </label>
+
+  <label>
+    Ordenar por precio:
+    <select name="sort">
+      <option value="">Sin orden</option>
+      <option value="asc">Ascendente</option>
+      <option value="desc">Descendente</option>
+    </select>
+  </label>
+
+  <button type="submit">Aplicar</button>
+</form>
+
+<hr />
+
+{{#if products.length}}
+  <ul>
+    {{#each products}}
+      <li>
+        <h3>{{this.title}}</h3>
+        <p>{{this.description}}</p>
+        <p><strong>Precio:</strong> ${{this.price}}</p>
+        <p><strong>Categoría:</strong> {{this.category}}</p>
+        <p><strong>Stock:</strong> {{this.stock}}</p>
+
+        <button class="add-to-cart" data-id="{{this._id}}">
+          Agregar al carrito
+        </button>
+      </li>
+      <hr />
+    {{/each}}
+  </ul>
+{{else}}
+  <p>No hay productos para mostrar.</p>
+{{/if}}
+
+<nav>
+  {{#if hasPrevPage}}
+    <a href="{{prevLink}}">⬅ Anterior</a>
+  {{/if}}
+
+  <span> Página {{page}} de {{totalPages}} </span>
+
+  {{#if hasNextPage}}
+    <a href="{{nextLink}}">Siguiente ➡</a>
+  {{/if}}
+</nav>
+
+<p id="cart-info"></p>
+
+<script>
+  const buttons = document.querySelectorAll(".add-to-cart");
+  const cartInfo = document.getElementById("cart-info");
+  let currentCartId = null;
+
+  async function ensureCart() {
+    if (currentCartId) return currentCartId;
+
+    const res = await fetch("/api/carts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    });
+
+    const data = await res.json();
+    if (data.status === "success") {
+      currentCartId = data.payload._id;
+      cartInfo.innerHTML =
+        'Carrito creado: <a href="/carts/' +
+        currentCartId +
+        '">Ver carrito</a>';
+    } else {
+      alert("Error al crear el carrito");
+    }
+    return currentCartId;
+  }
+
+  buttons.forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const pid = btn.dataset.id;
+      const cid = await ensureCart();
+
+      const res = await fetch(`/api/carts/${cid}/products/${pid}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
+
+      const data = await res.json();
+      if (data.status === "success") {
+        alert("Producto agregado al carrito");
+      } else {
+        alert("Error al agregar al carrito");
+      }
+    });
+  });
+</script>
+
+
+
+
+
+

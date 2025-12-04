@@ -1,11 +1,17 @@
 <h1>Productos en tiempo real</h1>
 
+<p>
+    <a href="/products" style="font-size:18px; font-weight:bold;">
+        ⬅ Volver a la tienda
+    </a>
+</p>
+
 <section>
     <h2>Lista de productos</h2>
     <ul id="products-list">
         {{#if products.length}}
         {{#each products}}
-            <li data-id="{{this.id}}">
+            <li data-id="{{this._id}}">
             <strong>{{this.title}}</strong> - ${{this.price}} (stock: {{this.stock}})
             </li>
         {{/each}}
@@ -24,15 +30,13 @@
         <input type="number" name="price" placeholder="Precio" required />
         <input type="number" name="stock" placeholder="Stock" required />
         <input type="text" name="category" placeholder="Categoría" required />
-        <input
-        type="text"
-        name="thumbnails"
-        placeholder="Thumbnails (separadas por coma)"
-        />
+        <input type="text" name="thumbnails" placeholder="Thumbnails (separadas por coma)" />
+
         <label>
-        <input type="checkbox" name="status" checked />
-        Activo
+            <input type="checkbox" name="status" checked />
+            Activo
         </label>
+
         <button type="submit">Crear</button>
     </form>
 </section>
